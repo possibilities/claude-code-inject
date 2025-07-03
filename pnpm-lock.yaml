@@ -10,6 +10,9 @@ importers:
       commander:
         specifier: ^12.0.0
         version: 12.1.0
+      yaml:
+        specifier: ^2.8.0
+        version: 2.8.0
     devDependencies:
       '@types/node':
         specifier: ^20.0.0
@@ -22,7 +25,7 @@ importers:
         version: 3.5.3
       tsup:
         specifier: ^8.0.0
-        version: 8.5.0(typescript@5.8.3)
+        version: 8.5.0(typescript@5.8.3)(yaml@2.8.0)
       typescript:
         specifier: ^5.0.0
         version: 5.8.3
@@ -1249,6 +1252,14 @@ packages:
       }
     engines: { node: '>=12' }
 
+  yaml@2.8.0:
+    resolution:
+      {
+        integrity: sha512-4lLa/EcQCB0cJkyts+FpIRx5G/llPxfP6VQU5KByHEhLxY3IJCH0f0Hy1MHI8sClTvsIb8qwRJ6R/ZdlDJ/leQ==,
+      }
+    engines: { node: '>= 14.6' }
+    hasBin: true
+
 snapshots:
   '@esbuild/aix-ppc64@0.25.5':
     optional: true
@@ -1685,9 +1696,11 @@ snapshots:
       mlly: 1.7.4
       pathe: 2.0.3
 
-  postcss-load-config@6.0.1:
+  postcss-load-config@6.0.1(yaml@2.8.0):
     dependencies:
       lilconfig: 3.1.3
+    optionalDependencies:
+      yaml: 2.8.0
 
   prettier@3.5.3: {}
 
@@ -1810,7 +1823,7 @@ snapshots:
 
   ts-interface-checker@0.1.13: {}
 
-  tsup@8.5.0(typescript@5.8.3):
+  tsup@8.5.0(typescript@5.8.3)(yaml@2.8.0):
     dependencies:
       bundle-require: 5.1.0(esbuild@0.25.5)
       cac: 6.7.14
@@ -1821,7 +1834,7 @@ snapshots:
       fix-dts-default-cjs-exports: 1.0.1
       joycon: 3.1.1
       picocolors: 1.1.1
-      postcss-load-config: 6.0.1
+      postcss-load-config: 6.0.1(yaml@2.8.0)
       resolve-from: 5.0.0
       rollup: 4.43.0
       source-map: 0.8.0-beta.0
@@ -1868,3 +1881,5 @@ snapshots:
       ansi-styles: 6.2.1
       string-width: 5.1.2
       strip-ansi: 7.1.0
+
+  yaml@2.8.0: {}
