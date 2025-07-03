@@ -13,7 +13,11 @@
     "build:watch": "nodemon --watch src/ --ext ts --exec tsup",
     "format": "prettier --write \"**/*.{js,mjs,jsx,ts,tsx,json,md,mdx,css,yml,yaml}\"",
     "typecheck": "tsc --noEmit",
-    "typecheck:watch": "tsc --noEmit --watch"
+    "typecheck:watch": "tsc --noEmit --watch",
+    "release": "./release.sh",
+    "release:patch": "./release.sh patch",
+    "release:minor": "./release.sh minor",
+    "release:major": "./release.sh major"
   },
   "dependencies": {
     "commander": "^12.0.0",
