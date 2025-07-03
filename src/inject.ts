@@ -1,107 +1,63 @@
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs'
-import { dirname, join } from 'path'
+import {
+  readFileSync,
+  writeFileSync,
+  existsSync,
+  mkdirSync,
+  copyFileSync,
+} from 'fs'
+import { join } from 'path'
 import { Config } from './config.js'
-import { BackupInfo, backupFile, saveBackupInfo } from './backup.js'
 
-interface McpServerConfig {
-  type: string
-  command: string
-  args?: string[]
-  env?: Record<string, string>
-}
+const CLAUDE_DIR = '.claude'
+const INJECT_MCPS_FILE = join(CLAUDE_DIR, 'inject-mcps.json')
+const SETTINGS_FILE = join(CLAUDE_DIR, 'settings.local.json')
+const SETTINGS_BACKUP_FILE = join(CLAUDE_DIR, 'settings.local.backup.json')
+const GITIGNORE_FILE = join(CLAUDE_DIR, '.gitignore')
 
-interface McpJson {
-  mcpServers: Record<string, McpServerConfig>
-}
+const GITIGNORE_ENTRIES = [
+  'inject-mcps.json',
+  'settings.local.backup.json',
+  '.gitignore',
+]
 
-interface ClaudeSettings {
-  permissions?: {
-    defaultMode?: string
-  }
-  hooks?: Record<string, any>
-}
-
-const MCP_FILE = '.mcp.json'
-const SETTINGS_FILE = join('.claude', 'settings.local.json')
-
-function ensureDirectory(filePath: string): void {
-  const dir = dirname(filePath)
-  if (!existsSync(dir)) {
-    mkdirSync(dir, { recursive: true })
+function ensureClaudeDir(): void {
+  if (!existsSync(CLAUDE_DIR)) {
+    mkdirSync(CLAUDE_DIR, { recursive: true })
   }
 }
 
-function mergeDeep(target: any, source: any): any {
-  const result = { ...target }
-  for (const key in source) {
-    if (
-      source[key] &&
-      typeof source[key] === 'object' &&
-      !Array.isArray(source[key])
-    ) {
-      result[key] = mergeDeep(result[key] || {}, source[key])
-    } else {
-      result[key] = source[key]
-    }
+function updateGitignore(): void {
+  ensureClaudeDir()
+
+  let existingContent: string[] = []
+  if (existsSync(GITIGNORE_FILE)) {
+    existingContent = readFileSync(GITIGNORE_FILE, 'utf8')
+      .split('\n')
+      .filter(line => line.trim())
   }
-  return result
+
+  const uniqueEntries = new Set([...existingContent, ...GITIGNORE_ENTRIES])
+  const newContent = Array.from(uniqueEntries).join('\n') + '\n'
+
+  writeFileSync(GITIGNORE_FILE, newContent)
 }
 
 export function inject(config: Config): void {
-  const backupInfo: BackupInfo = {
-    timestamp: new Date().toISOString(),
-    files: {},
-  }
+  ensureClaudeDir()
 
   if (config.mcps) {
-    backupInfo.files[MCP_FILE] = backupFile(MCP_FILE)
-
-    let mcpJson: McpJson = { mcpServers: {} }
-    if (existsSync(MCP_FILE)) {
-      const existingContent = readFileSync(MCP_FILE, 'utf8')
-      try {
-        mcpJson = JSON.parse(existingContent)
-      } catch {
-        mcpJson = { mcpServers: {} }
-      }
-    }
-
-    mcpJson.mcpServers = mergeDeep(mcpJson.mcpServers, config.mcps)
-
-    writeFileSync(MCP_FILE, JSON.stringify(mcpJson, null, 2))
-    console.log(`✓ Updated ${MCP_FILE}`)
+    const mcpJson = { mcpServers: config.mcps }
+    writeFileSync(INJECT_MCPS_FILE, JSON.stringify(mcpJson, null, 2))
+    console.log(`✓ Created ${INJECT_MCPS_FILE}`)
   }
 
-  if (config.hooks || config.mode) {
-    backupInfo.files[SETTINGS_FILE] = backupFile(SETTINGS_FILE)
-
-    let settings: ClaudeSettings = {}
-    if (existsSync(SETTINGS_FILE)) {
-      const existingContent = readFileSync(SETTINGS_FILE, 'utf8')
-      try {
-        settings = JSON.parse(existingContent)
-      } catch {
-        settings = {}
-      }
-    }
-
-    ensureDirectory(SETTINGS_FILE)
-
-    if (config.mode) {
-      if (!settings.permissions) {
-        settings.permissions = {}
-      }
-      settings.permissions.defaultMode = config.mode
-    }
-
-    if (config.hooks) {
-      settings.hooks = mergeDeep(settings.hooks || {}, config.hooks)
-    }
-
-    writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2))
-    console.log(`✓ Updated ${SETTINGS_FILE}`)
+  if (existsSync(SETTINGS_FILE)) {
+    copyFileSync(SETTINGS_FILE, SETTINGS_BACKUP_FILE)
+    console.log(`✓ Backed up ${SETTINGS_FILE}`)
   }
 
-  saveBackupInfo(backupInfo)
+  updateGitignore()
+  console.log(`✓ Updated ${GITIGNORE_FILE}`)
+
   console.log('✓ Injection complete')
 }

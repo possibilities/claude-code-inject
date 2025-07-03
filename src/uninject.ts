@@ -1,65 +1,79 @@
 import {
+  readFileSync,
   writeFileSync,
   existsSync,
   unlinkSync,
   rmdirSync,
   readdirSync,
+  copyFileSync,
 } from 'fs'
-import { dirname, join } from 'path'
-import { loadBackupInfo, clearBackupInfo } from './backup.js'
+import { join } from 'path'
 
-export function uninject(): void {
-  const backupInfo = loadBackupInfo()
+const CLAUDE_DIR = '.claude'
+const INJECT_MCPS_FILE = join(CLAUDE_DIR, 'inject-mcps.json')
+const SETTINGS_FILE = join(CLAUDE_DIR, 'settings.local.json')
+const SETTINGS_BACKUP_FILE = join(CLAUDE_DIR, 'settings.local.backup.json')
+const GITIGNORE_FILE = join(CLAUDE_DIR, '.gitignore')
 
-  if (!backupInfo) {
-    console.log('No backup information found. Nothing to uninject.')
+const GITIGNORE_ENTRIES = [
+  'inject-mcps.json',
+  'settings.local.backup.json',
+  '.gitignore',
+]
+
+function removeFromGitignore(): void {
+  if (!existsSync(GITIGNORE_FILE)) {
     return
   }
 
-  console.log(`Restoring from backup created at: ${backupInfo.timestamp}`)
+  const content = readFileSync(GITIGNORE_FILE, 'utf8')
+  const lines = content.split('\n').filter(line => line.trim())
 
-  for (const [filePath, fileInfo] of Object.entries(backupInfo.files)) {
-    if (fileInfo.existed && fileInfo.originalContent !== undefined) {
-      writeFileSync(filePath, fileInfo.originalContent)
-      console.log(`✓ Restored ${filePath}`)
-    } else if (!fileInfo.existed && existsSync(filePath)) {
-      unlinkSync(filePath)
-      console.log(`✓ Removed ${filePath}`)
+  const remainingLines = lines.filter(line => !GITIGNORE_ENTRIES.includes(line))
 
-      try {
-        const dir = dirname(filePath)
-        if (existsSync(dir) && dir !== '.') {
-          const files = readdirSync(dir)
-          if (files.length === 0) {
-            rmdirSync(dir)
-            console.log(`✓ Removed empty directory ${dir}`)
-          }
-        }
-      } catch {}
+  if (remainingLines.length === 0) {
+    unlinkSync(GITIGNORE_FILE)
+    console.log(`✓ Removed ${GITIGNORE_FILE}`)
+  } else {
+    writeFileSync(GITIGNORE_FILE, remainingLines.join('\n') + '\n')
+    console.log(`✓ Updated ${GITIGNORE_FILE}`)
+  }
+}
+
+export function uninject(): void {
+  let changesFound = false
+
+  if (existsSync(SETTINGS_BACKUP_FILE)) {
+    if (existsSync(SETTINGS_FILE)) {
+      unlinkSync(SETTINGS_FILE)
     }
+    copyFileSync(SETTINGS_BACKUP_FILE, SETTINGS_FILE)
+    unlinkSync(SETTINGS_BACKUP_FILE)
+    console.log(`✓ Restored ${SETTINGS_FILE}`)
+    changesFound = true
   }
 
-  clearBackupInfo()
+  if (existsSync(INJECT_MCPS_FILE)) {
+    unlinkSync(INJECT_MCPS_FILE)
+    console.log(`✓ Removed ${INJECT_MCPS_FILE}`)
+    changesFound = true
+  }
 
-  try {
-    const backupDir = join('.claude', 'inject-backups')
-    if (existsSync(backupDir)) {
-      const files = readdirSync(backupDir)
+  removeFromGitignore()
+
+  if (existsSync(CLAUDE_DIR)) {
+    try {
+      const files = readdirSync(CLAUDE_DIR)
       if (files.length === 0) {
-        rmdirSync(backupDir)
-        console.log(`✓ Removed empty backup directory`)
+        rmdirSync(CLAUDE_DIR)
+        console.log(`✓ Removed empty ${CLAUDE_DIR} directory`)
       }
-    }
+    } catch {}
+  }
 
-    const claudeDir = '.claude'
-    if (existsSync(claudeDir)) {
-      const files = readdirSync(claudeDir)
-      if (files.length === 0) {
-        rmdirSync(claudeDir)
-        console.log(`✓ Removed empty .claude directory`)
-      }
-    }
-  } catch {}
-
-  console.log('✓ Uninjection complete')
+  if (changesFound) {
+    console.log('✓ Uninjection complete')
+  } else {
+    console.log('No injected files found. Nothing to uninject.')
+  }
 }
