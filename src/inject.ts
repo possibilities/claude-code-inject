@@ -15,12 +15,7 @@ const SETTINGS_FILE = join(CLAUDE_DIR, 'settings.local.json')
 const SETTINGS_BACKUP_FILE = join(CLAUDE_DIR, 'settings.local.backup.json')
 const GITIGNORE_FILE = join(CLAUDE_DIR, '.gitignore')
 
-const GITIGNORE_ENTRIES = [
-  'inject-mcps.json',
-  'settings.local.json',
-  'settings.local.backup.json',
-  '.gitignore',
-]
+const GITIGNORE_ENTRIES = ['inject-mcps.json', 'settings.local.json']
 
 function ensureClaudeDir(): void {
   if (!existsSync(CLAUDE_DIR)) {
