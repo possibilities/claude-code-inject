@@ -5,7 +5,8 @@ import {
   mkdirSync,
   copyFileSync,
 } from 'fs'
-import { join } from 'path'
+import { join, resolve } from 'path'
+import { homedir } from 'os'
 import { Config } from './config.js'
 
 const CLAUDE_DIR = '.claude'
@@ -41,6 +42,30 @@ function updateGitignore(): void {
   const newContent = Array.from(uniqueEntries).join('\n') + '\n'
 
   writeFileSync(GITIGNORE_FILE, newContent)
+}
+
+function updateClaudeConfig(): void {
+  const claudeConfigPath = join(homedir(), '.claude.json')
+  let claudeConfig: any = {}
+
+  if (existsSync(claudeConfigPath)) {
+    const existingContent = readFileSync(claudeConfigPath, 'utf8')
+    claudeConfig = JSON.parse(existingContent)
+  }
+
+  if (!claudeConfig.projects) {
+    claudeConfig.projects = {}
+  }
+
+  const projectPath = resolve(process.cwd())
+
+  if (!claudeConfig.projects[projectPath]) {
+    claudeConfig.projects[projectPath] = {}
+  }
+
+  claudeConfig.projects[projectPath].hasTrustDialogAccepted = true
+
+  writeFileSync(claudeConfigPath, JSON.stringify(claudeConfig, null, 2))
 }
 
 export function inject(config: Config): void {
@@ -93,6 +118,9 @@ export function inject(config: Config): void {
 
   updateGitignore()
   console.log(`✓ Updated ${GITIGNORE_FILE}`)
+
+  updateClaudeConfig()
+  console.log(`✓ Pre-accepted trust dialog for ${resolve(process.cwd())}`)
 
   console.log('✓ Injection complete')
 }
