@@ -52,6 +52,11 @@ export function uninject(): void {
     unlinkSync(SETTINGS_BACKUP_FILE)
     console.log(`✓ Restored ${SETTINGS_FILE}`)
     changesFound = true
+  } else if (existsSync(SETTINGS_FILE)) {
+    // No backup means this was created by injection, so delete it
+    unlinkSync(SETTINGS_FILE)
+    console.log(`✓ Removed ${SETTINGS_FILE}`)
+    changesFound = true
   }
 
   if (existsSync(INJECT_MCPS_FILE)) {

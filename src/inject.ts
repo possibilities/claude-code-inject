@@ -78,15 +78,17 @@ export function inject(config: Config): void {
 
     writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2))
 
-    const updates: string[] = []
+    console.log(`✓ Updated ${SETTINGS_FILE}`)
     if (config.defaultMode) {
-      updates.push(`defaultMode: ${config.defaultMode}`)
+      console.log(`  ✓ Set default mode to \`${config.defaultMode}\``)
     }
     if (config.hooks) {
-      updates.push(`hooks`)
+      const hookCount = Object.values(config.hooks).reduce(
+        (acc, matchers) => acc + matchers.length,
+        0,
+      )
+      console.log(`  ✓ Added ${hookCount}x hooks`)
     }
-
-    console.log(`✓ Updated ${SETTINGS_FILE} with ${updates.join(' and ')}`)
   }
 
   updateGitignore()
