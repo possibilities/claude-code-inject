@@ -60,7 +60,9 @@ function updateClaudeConfig(): void {
   const projectPath = resolve(process.cwd())
 
   if (!claudeConfig.projects[projectPath]) {
-    claudeConfig.projects[projectPath] = {}
+    claudeConfig.projects[projectPath] = {
+      allowedTools: [],
+    }
   }
 
   claudeConfig.projects[projectPath].hasTrustDialogAccepted = true
