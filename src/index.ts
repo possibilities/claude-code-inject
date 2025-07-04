@@ -21,11 +21,11 @@ async function main() {
           if (!result) {
             console.error('Error: No config file found')
             console.error('\nGlobal config locations searched:')
-            console.error('  ~/.config/claude-code-inject/config.yaml')
-            console.error('  ~/.claude-code-inject/config.yaml')
+            console.error('  ~/.config/claude-inject/config.yaml')
+            console.error('  ~/.claude-inject/config.yaml')
             console.error('\nProject config locations searched:')
-            console.error('  ./.claude-code-inject.yaml')
-            console.error('  ./claude-code-inject.yaml')
+            console.error('  ./.claude-inject.yaml')
+            console.error('  ./claude-inject.yaml')
             process.exit(1)
           }
 
