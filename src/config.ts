@@ -23,29 +23,93 @@ export interface HookMatcher {
 export interface Config {
   mcps?: Record<string, McpConfig>
   hooks?: Record<string, HookMatcher[]>
-  mode?: string
+  defaultMode?: 'default' | 'acceptEdits' | 'plan' | 'bypassPermissions'
 }
 
-const CONFIG_SEARCH_PATHS = [
+const GLOBAL_CONFIG_PATHS = [
   join(homedir(), '.config', 'claude-code-inject', 'config.yaml'),
   join(homedir(), '.claude-code-inject', 'config.yaml'),
+]
+
+const PROJECT_CONFIG_PATHS = [
   join('.', '.claude-code-inject.yaml'),
   join('.', 'claude-code-inject.yaml'),
 ]
 
+function mergeConfigs(global: Config, project: Config): Config {
+  const merged: Config = { ...global }
+
+  if (project.defaultMode !== undefined) {
+    merged.defaultMode = project.defaultMode
+  }
+
+  if (project.mcps) {
+    merged.mcps = {
+      ...(global.mcps || {}),
+      ...project.mcps,
+    }
+  }
+
+  if (project.hooks) {
+    merged.hooks = {
+      ...(global.hooks || {}),
+      ...project.hooks,
+    }
+  }
+
+  return merged
+}
+
 export function loadConfig(): { config: Config; configPath: string } | null {
-  for (const configPath of CONFIG_SEARCH_PATHS) {
+  let globalConfig: Config | null = null
+  let globalConfigPath: string | null = null
+
+  for (const configPath of GLOBAL_CONFIG_PATHS) {
     if (existsSync(configPath)) {
       try {
         const fileContent = readFileSync(configPath, 'utf8')
-        const config = YAML.parse(fileContent) as Config
-        return { config, configPath }
+        globalConfig = YAML.parse(fileContent) as Config
+        globalConfigPath = configPath
+        break
       } catch (error) {
         throw new Error(
-          `Failed to parse config file at ${configPath}: ${error instanceof Error ? error.message : String(error)}`,
+          `Failed to parse global config file at ${configPath}: ${error instanceof Error ? error.message : String(error)}`,
         )
       }
     }
   }
-  return null
+
+  let projectConfig: Config | null = null
+  let projectConfigPath: string | null = null
+
+  for (const configPath of PROJECT_CONFIG_PATHS) {
+    if (existsSync(configPath)) {
+      try {
+        const fileContent = readFileSync(configPath, 'utf8')
+        projectConfig = YAML.parse(fileContent) as Config
+        projectConfigPath = configPath
+        break
+      } catch (error) {
+        throw new Error(
+          `Failed to parse project config file at ${configPath}: ${error instanceof Error ? error.message : String(error)}`,
+        )
+      }
+    }
+  }
+
+  if (!globalConfig && !projectConfig) {
+    return null
+  }
+
+  if (globalConfig && projectConfig) {
+    const mergedConfig = mergeConfigs(globalConfig, projectConfig)
+    const configPaths = `${globalConfigPath} + ${projectConfigPath}`
+    return { config: mergedConfig, configPath: configPaths }
+  }
+
+  if (projectConfig) {
+    return { config: projectConfig, configPath: projectConfigPath! }
+  }
+
+  return { config: globalConfig!, configPath: globalConfigPath! }
 }

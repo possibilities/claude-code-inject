@@ -56,6 +56,26 @@ export function inject(config: Config): void {
     console.log(`✓ Backed up ${SETTINGS_FILE}`)
   }
 
+  if (config.defaultMode) {
+    let settings: any = {}
+
+    if (existsSync(SETTINGS_FILE)) {
+      const existingContent = readFileSync(SETTINGS_FILE, 'utf8')
+      settings = JSON.parse(existingContent)
+    }
+
+    if (!settings.permissions) {
+      settings.permissions = {}
+    }
+
+    settings.permissions.defaultMode = config.defaultMode
+
+    writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2))
+    console.log(
+      `✓ Updated ${SETTINGS_FILE} with defaultMode: ${config.defaultMode}`,
+    )
+  }
+
   updateGitignore()
   console.log(`✓ Updated ${GITIGNORE_FILE}`)
 
