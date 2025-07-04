@@ -1,3 +1,2 @@
-no-worktree: true
 commands:
   run-agent: dirty-confirm && claude-inject && context-composer work-on-typescript-cli | claude --mcp-config .claude/inject-mcps.json ; claude-inject --uninject
