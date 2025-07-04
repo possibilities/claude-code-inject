@@ -16,6 +16,7 @@ const GITIGNORE_FILE = join(CLAUDE_DIR, '.gitignore')
 
 const GITIGNORE_ENTRIES = [
   'inject-mcps.json',
+  'settings.local.json',
   'settings.local.backup.json',
   '.gitignore',
 ]
