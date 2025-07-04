@@ -6,7 +6,7 @@
   "description": "Claude Code Inject CLI",
   "type": "module",
   "bin": {
-    "claude-code-inject": "./dist/cli.js"
+    "claude-inject": "./dist/cli.js"
   },
   "scripts": {
     "build": "tsup",

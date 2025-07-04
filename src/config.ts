@@ -50,10 +50,18 @@ function mergeConfigs(global: Config, project: Config): Config {
     }
   }
 
-  if (project.hooks) {
-    merged.hooks = {
-      ...(global.hooks || {}),
-      ...project.hooks,
+  if (project.hooks || global.hooks) {
+    merged.hooks = {}
+
+    const allHookTypes = new Set([
+      ...Object.keys(global.hooks || {}),
+      ...Object.keys(project.hooks || {}),
+    ])
+
+    for (const hookType of allHookTypes) {
+      const globalHooks = global.hooks?.[hookType] || []
+      const projectHooks = project.hooks?.[hookType] || []
+      merged.hooks[hookType] = [...globalHooks, ...projectHooks]
     }
   }
 

@@ -56,7 +56,7 @@ export function inject(config: Config): void {
     console.log(`✓ Backed up ${SETTINGS_FILE}`)
   }
 
-  if (config.defaultMode) {
+  if (config.defaultMode || config.hooks) {
     let settings: any = {}
 
     if (existsSync(SETTINGS_FILE)) {
@@ -64,16 +64,28 @@ export function inject(config: Config): void {
       settings = JSON.parse(existingContent)
     }
 
-    if (!settings.permissions) {
-      settings.permissions = {}
+    if (config.defaultMode) {
+      if (!settings.permissions) {
+        settings.permissions = {}
+      }
+      settings.permissions.defaultMode = config.defaultMode
     }
 
-    settings.permissions.defaultMode = config.defaultMode
+    if (config.hooks) {
+      settings.hooks = config.hooks
+    }
 
     writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2))
-    console.log(
-      `✓ Updated ${SETTINGS_FILE} with defaultMode: ${config.defaultMode}`,
-    )
+
+    const updates: string[] = []
+    if (config.defaultMode) {
+      updates.push(`defaultMode: ${config.defaultMode}`)
+    }
+    if (config.hooks) {
+      updates.push(`hooks`)
+    }
+
+    console.log(`✓ Updated ${SETTINGS_FILE} with ${updates.join(' and ')}`)
   }
 
   updateGitignore()
