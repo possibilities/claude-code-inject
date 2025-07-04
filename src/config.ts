@@ -27,13 +27,13 @@ export interface Config {
 }
 
 const GLOBAL_CONFIG_PATHS = [
-  join(homedir(), '.config', 'claude-inject', 'config.yaml'),
-  join(homedir(), '.claude-inject', 'config.yaml'),
+  join(homedir(), '.config', 'claude-code-inject', 'config.yaml'),
+  join(homedir(), '.claude-code-inject', 'config.yaml'),
 ]
 
 const PROJECT_CONFIG_PATHS = [
-  join('.', '.claude-inject.yaml'),
-  join('.', 'claude-inject.yaml'),
+  join('.', '.claude-code-inject.yaml'),
+  join('.', 'claude-code-inject.yaml'),
 ]
 
 function mergeConfigs(global: Config, project: Config): Config {
