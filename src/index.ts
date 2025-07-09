@@ -2,7 +2,6 @@ import { Command } from 'commander'
 import packageJson from '../package.json' assert { type: 'json' }
 import { loadConfig } from './config.js'
 import { inject } from './inject.js'
-import { uninject } from './uninject.js'
 
 async function main() {
   const program = new Command()
@@ -11,28 +10,23 @@ async function main() {
     .name('claude-code-inject')
     .description('Claude Code Inject CLI')
     .version(packageJson.version)
-    .option('--uninject', 'Remove all injected files and restore originals')
-    .action(options => {
+    .action(() => {
       try {
-        if (options.uninject) {
-          uninject()
-        } else {
-          const result = loadConfig()
-          if (!result) {
-            console.error('Error: No config file found')
-            console.error('\nGlobal config locations searched:')
-            console.error('  ~/.config/claude-code-inject/config.yaml')
-            console.error('  ~/.claude-code-inject/config.yaml')
-            console.error('\nProject config locations searched:')
-            console.error('  ./.claude-code-inject.yaml')
-            console.error('  ./claude-code-inject.yaml')
-            process.exit(1)
-          }
-
-          const { config, configPath } = result
-          console.log(`Using config from: ${configPath}`)
-          inject(config)
+        const result = loadConfig()
+        if (!result) {
+          console.error('Error: No config file found')
+          console.error('\nGlobal config locations searched:')
+          console.error('  ~/.config/claude-code-inject/config.yaml')
+          console.error('  ~/.claude-code-inject/config.yaml')
+          console.error('\nProject config locations searched:')
+          console.error('  ./.claude-code-inject.yaml')
+          console.error('  ./claude-code-inject.yaml')
+          process.exit(1)
         }
+
+        const { config, configPath } = result
+        console.log(`Using config from: ${configPath}`)
+        inject(config)
       } catch (error) {
         console.error(
           'Error:',

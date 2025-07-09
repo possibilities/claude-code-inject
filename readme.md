@@ -60,13 +60,3 @@ hooks:
         - type: command
           command: claude-code-generic-hooks store ~/.claude/hooks.db
 ```
-
-### Uninjecting
-
-To uninject the hooks, mcps, and default mode, you can run:
-
-```bash
-claude-code-inject && claude --mcp-config ./.claude/inject-mcps.json ; claude-inject --uninject
-```
-
-This is only needed if you want to make the environment exactly as it was before running running `claude-code-inject`. All the changes it makes will be `.gitignore`ed (via a `.gitignore` in `./.claude` directory) so generally this is not needed unless you want it to restore changes to `./.claude/settings.local.json`.
