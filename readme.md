@@ -1,5 +1,7 @@
 # Claude Code Inject
 
+[![npm version](https://badge.fury.io/js/claude-code-inject.svg)](https://www.npmjs.com/package/claude-code-inject)
+
 Inject hooks, mcps, and default mode into the next `claude` invocation
 
 ## Usage
